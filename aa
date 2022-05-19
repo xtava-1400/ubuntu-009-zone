@@ -1,0 +1,94 @@
+import time
+import pygame
+import sys
+import socket
+import threading
+
+last_recieved = ''
+wait_for_recieve = True
+
+def recieve(s: socket):
+    while True:
+        global last_recieved
+        global wait_for_recieve
+        while (wait_for_recieve == True):
+            time.sleep(0.001)
+        last_recieved = s.recv(1024).decode('utf-8')
+        wait_for_recieve = True
+        # print(last_recieved)
+        time.sleep(0.01)
+
+def send(s: socket):
+    window = pygame.display.set_mode((1100,600))
+    pl = pygame.image.load('player2.png')
+    pt = pygame.image.load('playe3.png')
+    sp = 10
+    ang = 90
+    an = 0
+    X = 10
+    X1 = 10
+    Y = 100 
+    Y1 = 100
+    ac = True
+    global wait_for_recieve
+    while ac:
+        while (wait_for_recieve == False):
+            time.sleep(0.001)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                ac = False
+        keys = pygame.key.get_pressed()     
+        if keys[pygame.K_a]:
+            X -= sp
+        if keys[pygame.K_d]:
+            X += sp
+        if keys[pygame.K_w]:
+            Y -= sp
+        if keys[pygame.K_s]:
+            Y += sp
+        if keys[pygame.K_c ]:
+            sp = sp - 1
+        if keys[pygame.K_l ]:
+            sp = sp + 1
+        if keys[pygame.K_e]:
+            ang -= 1
+        if keys[pygame.K_q]:
+            ang += 1
+
+        s.sendall((X.__str__() + ',' + Y.__str__() + ',' + ang.__str__()).encode('utf-8'))
+        wait_for_recieve = False
+
+        window.fill((0,0,0))
+        rotated_image = pygame.transform.rotate(pt,ang)
+        new_rect = rotated_image.get_rect(center = pt.get_rect(center=(X, Y)).center)
+        window.blit(rotated_image, new_rect)
+        if ',' in last_recieved and last_recieved.split(',').__len__() >= 3:
+            X1=int(last_recieved.split(',')[0])
+            Y1=int(last_recieved.split(',')[1])
+            an=int(last_recieved.split(',')[2])
+            rotated_imag = pygame.transform.rotate(pl,an)
+            new_rect = rotated_imag.get_rect(center = pl.get_rect(center=(X1, Y1)).center)
+            window.blit(rotated_imag, new_rect)
+            
+
+        pygame.display.update()
+        time.sleep(0.01)
+
+if __name__ == '__main__':
+    if len(sys.argv) is not 3:
+        print("usage: %s [ip adress] mode" % sys.argv[0] )
+        sys.exit(0)
+    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    if sys.argv[2] == 's':
+        server.bind(('', 11111))
+        server.listen()
+        (server, addr) = server.accept() 
+    else:
+        server.connect((sys.argv[1], 11111))
+    thread1 = threading.Thread(target = recieve, args = ([server]))
+    thread2 = threading.Thread(target = send, args = ([server]))
+    thread1.start()
+    thread2.start()
+    thread1.join()
+    thread2.join()
