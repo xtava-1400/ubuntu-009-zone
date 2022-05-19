@@ -1,0 +1,41 @@
+from asyncio import events
+import pygame
+import sys
+window = pygame.display.set_mode((1200,650))
+color = (255,255,255)
+sp = 0.1
+X = 10
+Y = 100
+A = 20
+radius = 10
+pygame.draw.circle(window, (255,255,243), (1080,30), A)
+#pygame.draw.circle(window, (200,0,0), (1010,30), 20)
+#pygame.draw.circle(window, (0,200,0), (1140,30), 20)
+pygame.draw.circle(window, (0,50,200), (1170,30), A)
+ac = True
+print("hello")
+while ac:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            ac = False
+            sys.exit()
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            pass
+    keys = pygame.key.get_pressed()  
+    X , Y =  pygame.mouse.get_pos()
+    print(X , Y)
+    if(Y < 30 + (A/2) and Y > 30 - (A/2) and X < 1080 + (A/2) and X > 1080 - (A/2)):
+        color = (255,255,255)
+    #if(X == 1170 and Y == 30):
+    #    color = (0,50,200)
+    #if(X == 1170 and Y == 30):
+    #    color = (0,50,200)
+    #if(X == 1170 and Y == 30):
+    #    color = (0,200,0)
+    if(Y < 30 + (A/2) and Y > 30 - (A/2) and X < 1170 + (A/2) and X > 1170 - (A/2)):
+        color = (0,50,200)
+    pygame.draw.circle(window, color, (0,0), 20)
+    if keys[pygame.K_a]:
+        pygame.draw.circle(window, color, (X , Y), radius)
+    
+    pygame.display.update()
